@@ -154,6 +154,8 @@ function processResult(html) {
 const ATTENDANCE_URL = process.env.ATTENDANCE_URL;
 const ACCOUNTS = JSON.parse(process.env.ACCOUNTS || '[]');
 
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 (async () => {
     if (!ATTENDANCE_URL) {
         console.error("❌ Error: ATTENDANCE_URL is not defined in .env");
@@ -164,8 +166,14 @@ const ACCOUNTS = JSON.parse(process.env.ACCOUNTS || '[]');
         return;
     }
 
-    for (const account of ACCOUNTS) {
+    for (let i = 0; i < ACCOUNTS.length; i++) {
+        const account = ACCOUNTS[i];
         await runAttendance(account.user, account.pass, ATTENDANCE_URL);
+
+        if (i < ACCOUNTS.length - 1) {
+            console.log("⏳ Waiting 3 seconds before the next account to avoid ECONNRESET...");
+            await sleep(3000);
+        }
         console.log(""); // Blank line for readability
     }
 })();
